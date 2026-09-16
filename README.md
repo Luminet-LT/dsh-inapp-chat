@@ -135,6 +135,23 @@ v0.3.4（© caoganghui）fork 而来，保留其署名与许可证（见 [LICENS
 | 附带工具 | `tools/` 自带壳补丁工具链（上游没有） |
 | 文档 | 中文/英文说明 + 市场上架与发布流程 |
 
+## 开发与自测
+
+```bash
+node test/smoke.cjs      # 或 npm test
+```
+
+这个冒烟测试不需要浏览器、不联网：它用假的模块加载器和最小 DOM 把
+`lib/client.js` 装进 harness 的 slot，然后**跑完四条点击分支** —— 标准桥接、
+旧式 WebView2 桥接、桌面壳无桥接（应弹应用内对话框）、纯浏览器（应开新标签页），
+外加设置开关的写入。`npm run check` 会顺带做语法检查。
+
+## 发布
+
+推 GitHub、发 npm、上架插件市场的完整步骤见
+[docs/PUBLISHING.md](docs/PUBLISHING.md)；市场上架条目与 PR 文案见
+[docs/market-entry.md](docs/market-entry.md)。
+
 ## License
 
 MIT © 2026 caoganghui（上游部分）、lt99-chd（本分支改动）。详见 [LICENSE](LICENSE)。

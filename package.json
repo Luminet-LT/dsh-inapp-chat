@@ -16,6 +16,7 @@
   },
   "files": [
     "lib",
+    "tools",
     "cordis.patch.yml",
     "README.md",
     "README.en.md",
@@ -23,6 +24,10 @@
     "LICENSE",
     "NOTICE"
   ],
+  "scripts": {
+    "test": "node test/smoke.cjs",
+    "check": "node --check lib/index.js && node --check lib/client.js && node test/smoke.cjs"
+  },
   "keywords": [
     "dsh",
     "dsh-plugin",

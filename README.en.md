@@ -110,6 +110,25 @@ v0.3.4 (© caoganghui); attribution and license are preserved (see
 [LICENSE](LICENSE) and [NOTICE](NOTICE)). Changes: the in-app fallback dialog,
 its own settings namespace, the bundled shell-patch tooling, and bilingual docs.
 
+## Development
+
+```bash
+node test/smoke.cjs      # or: npm test
+```
+
+The smoke test needs no browser and no network: it loads `lib/client.js` through
+a fake module loader and a minimal DOM, mounts the sidebar entry the way the
+harness slots do, and then drives **all four click branches** — standard bridge,
+legacy WebView2 bridge, Electron shell without a bridge (in-app dialog expected),
+plain browser (new tab expected) — plus the settings toggle. `npm run check` adds
+the syntax checks.
+
+## Publishing
+
+GitHub / npm / market submission steps live in
+[docs/PUBLISHING.md](docs/PUBLISHING.md); the market entry and PR text live in
+[docs/market-entry.md](docs/market-entry.md).
+
 ## License
 
 MIT © 2026 caoganghui (upstream portions), lt99-chd (this fork).

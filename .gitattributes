@@ -1,0 +1,11 @@
+# 统一换行：仓库内一律存 LF，Windows 上的 .cmd/.ps1 检出为 CRLF
+* text=auto eol=lf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# 二进制
+*.asar binary
+*.tgz binary
+*.png binary
+*.jpg binary
+*.ico binary

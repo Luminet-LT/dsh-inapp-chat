@@ -1,0 +1,23 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Syntax check
+        run: |
+          node --check lib/index.js
+          node --check lib/client.js
+      - name: Smoke test (module load, sidebar mount, all four click branches)
+        run: node test/smoke.cjs
+      - name: Package contents
+        run: npm pack --dry-run
