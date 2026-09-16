@@ -42,6 +42,46 @@ ssh-keygen -t ed25519 -C "2053703304@qq.com"
 # 把 ~/.ssh/id_ed25519.pub 加到 GitHub → Settings → SSH keys
 ```
 
+## 1.5 网络：GitHub 连不上时（中国大陆常见）
+
+**症状**：`Resolve-DnsName github.com` 返回 `127.0.0.1`，`git push` 直接超时或报无法连接 ——
+但**网络链路其实是通的**，只有本地 DNS 被污染。
+
+**先确诊**（三行就够）：
+
+```powershell
+Resolve-DnsName github.com -Type A                      # 127.0.0.1 => DNS 被污染
+Test-NetConnection 20.205.243.166 -Port 443             # True => 链路通，只是名字解析错了
+# 用 DoH 查真实 IP（本地解析器不可信时）
+node -e "fetch('https://dns.alidns.com/resolve?name=github.com&type=A',{headers:{accept:'application/dns-json'}}).then(r=>r.json()).then(j=>console.log(j.Answer))"
+```
+
+**方案 A（推荐，长期）：走代理**
+
+```bash
+git config --global http.proxy http://127.0.0.1:7890   # 换成你的代理端口
+git config --global --unset http.proxy                  # 取消
+```
+
+**方案 B：补 hosts（本机可逆）**
+2026-09-17 实测可用的 IP：`github.com 20.205.243.166`、`api.github.com 20.205.243.168`、
+`raw.githubusercontent.com 185.199.108.133`。写入 `C:\Windows\System32\drivers\etc\hosts`
+需要管理员；用完删掉那几行即可还原。注意 GitHub 的 IP 会变。
+
+**推送前自检**（不鉴权也能看出端点是否正常）：
+
+```powershell
+# 期望 200（网站）与 401 "Repository not found."（仓库还没建，端点本身是好的）
+node -e "const h=require('https');const g=(p)=>new Promise(r=>h.request({host:'20.205.243.166',servername:'github.com',path:p,headers:{Host:'github.com'}},s=>{r(s.statusCode);s.resume()}).end());(async()=>{console.log(await g('/'));console.log(await g('/lt99-chd/dsh-inapp-chat.git/info/refs?service=git-receive-pack'))})()"
+```
+
+**凭据**：HTTPS 推送时用户名填 GitHub 用户名，密码填 **PAT**（classic 勾 `repo`，或 fine-grained 给该仓库
+Contents: Read and write）。开启凭据缓存：
+
+```bash
+git config --global credential.helper manager
+```
+
 ## 2. 发布到 npm
 
 ```bash
