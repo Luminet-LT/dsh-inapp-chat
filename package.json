@@ -18,6 +18,8 @@
     "lib",
     "tools",
     "cordis.patch.yml",
+    "README.md",
+    "README.en.md",
     "LICENSE",
     "NOTICE"
   ],
@@ -40,7 +42,7 @@
     "type": "git",
     "url": "git+https://github.com/Luminet-LT/dsh-inapp-chat.git"
   },
-  "homepage": "https://github.com/Luminet-LT/dsh-inapp-chat",
+  "homepage": "https://github.com/Luminet-LT/dsh-inapp-chat#readme",
   "bugs": {
     "url": "https://github.com/Luminet-LT/dsh-inapp-chat/issues"
   },
