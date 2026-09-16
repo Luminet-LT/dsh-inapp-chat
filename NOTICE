@@ -10,9 +10,8 @@
 - Repository: https://github.com/zerorigin-studio/dsh-deepseek-chat
 
 The upstream files are compiled bundles (the upstream project does not publish
-TypeScript sources yet), so this fork carries them as-is with a documented set
-of textual modifications, listed in `CHANGELOG.md` and in the "Relationship to
-upstream" section of `README.md`:
+TypeScript sources yet), so this fork carries them as-is with these textual
+modifications:
 
 - the settings namespace is renamed to `dsh-inapp-chat`;
 - the click handler no longer falls back to the system browser inside a desktop
@@ -22,7 +21,7 @@ upstream" section of `README.md`:
 
 ## This fork
 
-Modifications and everything under `tools/`, `docs/`, `README*.md`:
+Modifications and everything under `tools/`:
 Copyright (c) 2026 Luminet-LT, MIT.
 
 ## Third-party
