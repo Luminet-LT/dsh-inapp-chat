@@ -1,0 +1,37 @@
+# NOTICE
+
+## Upstream
+
+`lib/index.js` and `lib/client.js` are derived from
+**@zerorigin-studio/dsh-deepseek-chat v0.3.4**
+
+- Author: caoganghui
+- License: MIT
+- Repository: https://github.com/zerorigin-studio/dsh-deepseek-chat
+
+The upstream files are compiled bundles (the upstream project does not publish
+TypeScript sources yet), so this fork carries them as-is with a documented set
+of textual modifications, listed in `CHANGELOG.md` and in the "Relationship to
+upstream" section of `README.md`:
+
+- the settings namespace is renamed to `dsh-inapp-chat`;
+- the click handler no longer falls back to the system browser inside a desktop
+  shell — it shows an in-app dialog;
+- a legacy `window.chrome.webview` bridge adapter is kept from upstream and the
+  bridge detection is factored into `desktopBridge()` / `insideDesktopShell()`.
+
+## This fork
+
+Modifications and everything under `tools/`, `docs/`, `README*.md`:
+Copyright (c) 2026 lt99-chd, MIT.
+
+## Third-party
+
+`tools/asar_tool.cjs` is an original, dependency-free implementation of the
+asar container format (read / rebuild / verify). It writes archives in the
+Electron Pickle layout used by `@electron/asar`; it contains no third-party
+code.
+
+`lib/index.js` additionally vendors a copy of `schemastery` (MIT) exactly as
+shipped by the upstream package, because the DSH settings registry expects a
+`schemastery` schema object.

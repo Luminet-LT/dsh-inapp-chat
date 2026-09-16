@@ -1,0 +1,15 @@
+# 依赖 / 构建产物
+node_modules/
+*.tgz
+
+# 壳补丁工具在本机现场生成的产物（不提交）
+tools/app.patched.asar
+tools/*.bak-*
+tools/*.new
+
+# 编辑器 / 系统
+.vscode/
+.idea/
+Thumbs.db
+Desktop.ini
+*.log

@@ -1,0 +1,4 @@
+# dsh-inapp-chat bundle patch: add the in-app chat entry row to the web roster.
+- insert:
+    - id: inapp-chat
+      name: 'dsh-inapp-chat'
