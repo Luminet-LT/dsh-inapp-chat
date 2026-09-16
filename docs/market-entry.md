@@ -14,8 +14,8 @@
 ```json
 {
   "name": "dsh-inapp-chat",
-  "owner": "lt99-chd",
-  "url": "https://github.com/lt99-chd/dsh-inapp-chat",
+  "owner": "Luminet-LT",
+  "url": "https://github.com/Luminet-LT/dsh-inapp-chat",
   "category": "ui",
   "description": {
     "en": "In-app chat window for DeepSeek Harness: a sidebar entry that opens chat.deepseek.com in an application window through the standard desktop bridge (window.dsh.desktop.openWindow). Without that bridge it no longer throws you out to the system browser — it shows an in-app dialog with a one-off shell patch (bundled, reversible) that adds the bridge to Electron shells.",
@@ -44,7 +44,7 @@ Add dsh-inapp-chat — in-app chat window entry for DeepSeek Harness
 ### Plugin
 
 - **name**: dsh-inapp-chat
-- **repo**: https://github.com/lt99-chd/dsh-inapp-chat
+- **repo**: https://github.com/Luminet-LT/dsh-inapp-chat
 - **npm**: https://www.npmjs.com/package/dsh-inapp-chat
 - **category**: ui
 - **install**: `dsh plugin --profile web add dsh-inapp-chat`

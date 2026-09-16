@@ -41,11 +41,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/lt99-chd/dsh-inapp-chat.git"
+    "url": "git+https://github.com/Luminet-LT/dsh-inapp-chat.git"
   },
-  "homepage": "https://github.com/lt99-chd/dsh-inapp-chat#readme",
+  "homepage": "https://github.com/Luminet-LT/dsh-inapp-chat#readme",
   "bugs": {
-    "url": "https://github.com/lt99-chd/dsh-inapp-chat/issues"
+    "url": "https://github.com/Luminet-LT/dsh-inapp-chat/issues"
   },
   "publishConfig": {
     "access": "public"

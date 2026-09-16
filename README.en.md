@@ -131,4 +131,4 @@ GitHub / npm / market submission steps live in
 
 ## License
 
-MIT © 2026 caoganghui (upstream portions), lt99-chd (this fork).
+MIT © 2026 caoganghui (upstream portions), Luminet-LT (this fork).

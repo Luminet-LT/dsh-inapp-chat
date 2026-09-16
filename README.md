@@ -154,4 +154,4 @@ node test/smoke.cjs      # 或 npm test
 
 ## License
 
-MIT © 2026 caoganghui（上游部分）、lt99-chd（本分支改动）。详见 [LICENSE](LICENSE)。
+MIT © 2026 caoganghui（上游部分）、Luminet-LT（本分支改动）。详见 [LICENSE](LICENSE)。

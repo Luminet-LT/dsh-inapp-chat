@@ -21,14 +21,14 @@ cd dsh-inapp-chat
 #   powershell: Resolve-DnsName github.com
 #   bash:       getent hosts github.com
 
-git remote add origin https://github.com/lt99-chd/dsh-inapp-chat.git
+git remote add origin https://github.com/Luminet-LT/dsh-inapp-chat.git
 git push -u origin main
 ```
 
-用 SSH 的话把 URL 换成 `git@github.com:lt99-chd/dsh-inapp-chat.git`。
+用 SSH 的话把 URL 换成 `git@github.com:Luminet-LT/dsh-inapp-chat.git`。
 
 **想改仓库名/作者**：改 `package.json` 里的 `repository.url`、`homepage`、`bugs.url` 三处，
-以及 README 里的 URL 即可（本仓库按 `lt99-chd` 预填）。
+以及 README 里的 URL 即可（本仓库按 `Luminet-LT` 预填）。
 
 凭据两种方式：
 
@@ -72,7 +72,7 @@ git config --global --unset http.proxy                  # 取消
 
 ```powershell
 # 期望 200（网站）与 401 "Repository not found."（仓库还没建，端点本身是好的）
-node -e "const h=require('https');const g=(p)=>new Promise(r=>h.request({host:'20.205.243.166',servername:'github.com',path:p,headers:{Host:'github.com'}},s=>{r(s.statusCode);s.resume()}).end());(async()=>{console.log(await g('/'));console.log(await g('/lt99-chd/dsh-inapp-chat.git/info/refs?service=git-receive-pack'))})()"
+node -e "const h=require('https');const g=(p)=>new Promise(r=>h.request({host:'20.205.243.166',servername:'github.com',path:p,headers:{Host:'github.com'}},s=>{r(s.statusCode);s.resume()}).end());(async()=>{console.log(await g('/'));console.log(await g('/Luminet-LT/dsh-inapp-chat.git/info/refs?service=git-receive-pack'))})()"
 ```
 
 **凭据**：HTTPS 推送时用户名填 GitHub 用户名，密码填 **PAT**（classic 勾 `repo`，或 fine-grained 给该仓库
