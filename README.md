@@ -7,7 +7,7 @@
 边做项目，边查资料、解报错、确认方案，不再来回切换浏览器。
 
 [![dsh plugin](https://img.shields.io/badge/dsh-plugin-4D6BFE)](https://github.com/Luminet-LT/dsh-inapp-chat)
-[![version](https://img.shields.io/badge/version-0.1.1-4D6BFE)](https://github.com/Luminet-LT/dsh-inapp-chat)
+[![version](https://img.shields.io/badge/version-0.1.2-4D6BFE)](https://github.com/Luminet-LT/dsh-inapp-chat)
 [![license](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
 [功能](#功能) · [安装](#安装) · [使用](#使用) · [常见问题](#常见问题)

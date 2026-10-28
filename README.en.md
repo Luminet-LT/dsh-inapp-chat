@@ -7,7 +7,7 @@
 Research, debug, and ask quick questions while you work, without switching to a browser.
 
 [![dsh plugin](https://img.shields.io/badge/dsh-plugin-4D6BFE)](https://github.com/Luminet-LT/dsh-inapp-chat)
-[![version](https://img.shields.io/badge/version-0.1.1-4D6BFE)](https://github.com/Luminet-LT/dsh-inapp-chat)
+[![version](https://img.shields.io/badge/version-0.1.2-4D6BFE)](https://github.com/Luminet-LT/dsh-inapp-chat)
 [![license](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
 [Features](#features) · [Install](#install) · [Usage](#usage) · [FAQ](#faq)
