@@ -142,6 +142,13 @@ const windowStub = {
   innerHeight: 800,
 };
 
+const storageData = new Map();
+windowStub.localStorage = {
+  getItem(key) { return storageData.has(key) ? storageData.get(key) : null; },
+  setItem(key, value) { storageData.set(key, String(value)); },
+  removeItem(key) { storageData.delete(key); },
+};
+
 const navigatorStub = {
   userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Electron/31.0.0 Chrome/126 Safari/537.36',
   clipboard: null,
@@ -203,7 +210,7 @@ assert.strictEqual(definition.id, 'dsh-inapp-chat', 'module id must be dsh-inapp
 
 const mod = definition.factory(fakeRequire);
 assert.strictEqual(typeof mod.apply, 'function', 'apply must be exported');
-assert.deepStrictEqual(mod.inject, ['slots', 'settingsScope'], 'inject must declare slots + settingsScope');
+assert.deepStrictEqual(mod.inject, ['slots'], 'inject must not require the optional settingsScope service');
 
 // ------------------------------------------------------------- mount via slots
 const registered = [];
@@ -212,13 +219,29 @@ const ctx = {
     inject(_name, fn) { fn(); },
     register(def, component) { registered.push({ def, component }); return def; },
   },
-  settingsScope: {
-    bind() {
-      return { getSnapshot: () => ({ value: undefined }), subscribe: () => () => {}, set: () => {} };
-    },
-  },
+
 };
 mod.apply(ctx);
+
+// The native settings service remains preferred whenever the host provides it.
+{
+  let boundNamespace = null;
+  const nativeRegistered = [];
+  mod.apply({
+    slots: {
+      inject(_name, fn) { fn(); },
+      register(def) { nativeRegistered.push(def); return def; },
+    },
+    settingsScope: {
+      bind(options) {
+        boundNamespace = options.namespace;
+        return { getSnapshot: () => ({ value: undefined }), subscribe: () => () => {}, set: () => {} };
+      },
+    },
+  });
+  assert.strictEqual(boundNamespace, 'dsh-inapp-chat', 'native settingsScope must be used when available');
+  assert.strictEqual(nativeRegistered.length, 2, 'native settings path must still register both slots');
+}
 
 assert.strictEqual(registered.length, 2, 'expected two slot registrations (entry + settings toggle)');
 const entry = registered.find((r) => r.def.name === 'sidebar.footer.action');
@@ -294,6 +317,17 @@ function dialogRoot() {
 
 // --------------------------------------------------------------- settings toggle
 {
+  const actual = toggle.def.inject();
+  assert.strictEqual(actual.hooks.show.getSnapshot(), true, 'desktop fallback settings default to visible');
+  actual.setShow(false);
+  assert.strictEqual(actual.hooks.show.getSnapshot(), false, 'desktop fallback updates the live store');
+  assert.deepStrictEqual(
+    JSON.parse(storageData.get('dsh-inapp-chat:settings')),
+    { showEntry: false },
+    'desktop fallback persists the preference in localStorage',
+  );
+  actual.setShow(true);
+
   let written = null;
   const props = { ...toggle.def.inject(), useShow: (fn) => fn(true) };
   props.setShow = (next) => { written = next; };
@@ -313,4 +347,6 @@ console.log('  · bridge path opens an in-app window and suppresses the anchor')
 console.log('  · legacy WebView2 bridge path posts the same payload');
 console.log('  · Electron shell without a bridge shows the in-app dialog');
 console.log('  · plain browser keeps opening a new tab');
+console.log('  · settings fall back to localStorage when settingsScope is absent');
+console.log('  · native settingsScope is still preferred when available');
 console.log('  · settings toggle writes the preference');

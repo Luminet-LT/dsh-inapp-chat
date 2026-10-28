@@ -109,7 +109,7 @@ function openChatWindow(target) {
   }
   chatWindowUrl = url;
   chatWindow = new BrowserWindow({
-    width: 460,
+    width: 640,
     height: 800,
     minWidth: 360,
     minHeight: 480,

@@ -5,7 +5,8 @@
     DeepSeek Harness 官方桌面壳（Electron）把外链一律交给系统浏览器
     （main.js 里的 shell.openExternal），也不注入任何应用内开窗接口。
     插件（dsh-inapp-chat）因此只能退回“在系统浏览器打开”。
-    本脚本改的是**壳自己**的 main.js / main-preload.js：
+    本脚本改的是**壳自己**的 main.js / main-preload.js（0.1.x）或
+    lib/main.js / lib/preload-app.cjs（0.2.x）：
       · 点击 chat.deepseek.com 入口时在应用内开一个对话框形态的子窗口；
       · 通过 main-preload 暴露标准桥接 window.dsh.desktop.openWindow。
 
@@ -27,7 +28,7 @@
 param(
   [ValidateSet('status', 'build', 'deploy', 'install', 'restore')]
   [string]$Action = 'status',
-  [string]$Install = 'D:\Program Files (x86)\deepseek harness',
+  [string]$Install = 'D:\Program Files (x86)\dsh',
   [string]$Patched,
   [switch]$Restart
 )
@@ -48,7 +49,7 @@ $asarTool = Join-Path $scriptDir 'asar_tool.cjs'
 $res      = Join-Path $Install 'resources'
 $target   = Join-Path $res 'app.asar'
 $exe      = Join-Path $Install 'DeepSeek Harness.exe'
-$marker   = '应用内「网页对话」窗口'
+$markers  = @('dsh-inapp-chat shell patch', '应用内「网页对话」窗口')
 
 function Get-Sha([string]$path) { (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash }
 
@@ -59,7 +60,11 @@ function Get-AppProcesses {
 
 function Test-Patched([string]$path) {
   if (-not (Test-Path -LiteralPath $path)) { return $false }
-  return ([System.IO.File]::ReadAllText($path)).Contains($marker)
+  $text = [System.IO.File]::ReadAllText($path)
+  foreach ($marker in $markers) {
+    if ($text.Contains($marker)) { return $true }
+  }
+  return $false
 }
 
 function Stop-AppIfAsked {
@@ -93,11 +98,12 @@ function Show-Status {
   } else {
     "补丁包   : 尚未生成（跑 -Action build 或 -Action install）"
   }
-  $backups = Get-ChildItem -LiteralPath $res -Filter 'app.asar.bak-*' -ErrorAction SilentlyContinue |
+  $backups = Get-ChildItem -LiteralPath $res -Filter 'app.asar.*' -ErrorAction SilentlyContinue |
+    Where-Object { $_.Name -like 'app.asar.bak-*' -or $_.Name -like 'app.asar.official-*' } |
     Sort-Object LastWriteTime -Descending
   if ($backups) {
     "备份     :"
-    $backups | Select-Object -First 5 | ForEach-Object { "           $($_.Name)  $($_.Length) 字节  $($_.LastWriteTime)" }
+    $backups | Select-Object -First 5 | ForEach-Object { $kind = if (Test-Patched $_.FullName) { '补丁' } else { '官方' }; "           $($_.Name)  $($_.Length) 字节  $kind  $($_.LastWriteTime)" }
   } else {
     "备份     : 无"
   }
@@ -111,31 +117,58 @@ function Build-Patch {
   }
   $node = (Get-Command node -ErrorAction SilentlyContinue).Source
   if (-not $node) { throw 'PATH 里找不到 node（打补丁需要它读取 app.asar）' }
-  & $node $asarTool patch $target $Patched
+
+  # 0.2.x 使用 lib/main.js + lib/preload-app.cjs；0.1.x 使用 main.js + main-preload.js。
+  $layout = (& $node $asarTool list $target 2>&1 | Out-String)
+  if ($LASTEXITCODE -ne 0) { throw '无法读取 app.asar 文件列表' }
+  $modern = ($layout -match '(?m)^lib/main\.js\s') -and ($layout -match '(?m)^lib/preload-app\.cjs\s')
+  if ($modern) {
+    $modernTool = Join-Path $scriptDir 'build-asar.cjs'
+    if (-not (Test-Path -LiteralPath $modernTool)) { throw "0.2.x 补丁工具缺失：$modernTool" }
+    & $node $modernTool patch $target $Patched
+  } else {
+    & $node $asarTool patch $target $Patched
+  }
+  if ($LASTEXITCODE -ne 0) { throw '补丁构建工具执行失败' }
   if (-not (Test-Path -LiteralPath $Patched)) { throw '补丁包生成失败' }
   if (-not (Test-Patched $Patched)) { throw '生成的补丁包不含预期改动，已中止' }
-  "补丁包已生成：$Patched（$((Get-Item -LiteralPath $Patched).Length) 字节）"
+  $layoutName = if ($modern) { '0.2.x' } else { '0.1.x' }
+  "补丁包已生成：$Patched（$((Get-Item -LiteralPath $Patched).Length) 字节，$layoutName 布局）"
 }
 
 function Swap-In([string]$sourcePath, [string]$what) {
-  $staged = Join-Path $res 'app.asar.new'
-  Remove-Item -LiteralPath $staged -Force -ErrorAction SilentlyContinue
+  if (-not (Test-Path -LiteralPath $target)) { throw "找不到 app.asar：$target" }
+  $stamp = Get-Date -Format 'yyyyMMdd-HHmmss-fff'
+  $staged = Join-Path $res ("app.asar.staged-$stamp")
+  $backup = Join-Path $res ("app.asar.bak-$stamp")
+  $replaceBackup = Join-Path $res ("app.asar.preinstall-$stamp")
+  $sourceSha = Get-Sha $sourcePath
+
   Copy-Item -LiteralPath $sourcePath -Destination $staged -Force
-  if ((Get-Sha $staged) -ne (Get-Sha $sourcePath)) {
-    Remove-Item -LiteralPath $staged -Force -ErrorAction SilentlyContinue
+  if ((Get-Sha $staged) -ne $sourceSha) {
     throw '暂存副本校验失败，已中止（原文件未改动）'
   }
   "  1/3 已暂存 $what（$((Get-Item -LiteralPath $staged).Length) 字节）"
 
-  $backup = Join-Path $res ("app.asar.bak-" + (Get-Date -Format 'yyyyMMdd-HHmmss'))
-  Move-Item -LiteralPath $target -Destination $backup
-  "  2/3 原版已备份为 $(Split-Path $backup -Leaf)"
+  Copy-Item -LiteralPath $target -Destination $backup -Force
+  $backupSha = Get-Sha $backup
+  if ($backupSha -ne (Get-Sha $target)) {
+    throw '备份校验失败，已中止（原文件未改动）'
+  }
+  "  2/3 当前版本已安全备份为 $(Split-Path $backup -Leaf)"
 
   try {
-    Move-Item -LiteralPath $staged -Destination $target
+    [System.IO.File]::Replace($target, $staged, $replaceBackup)
   } catch {
-    Move-Item -LiteralPath $backup -Destination $target -Force   # 回滚
+    if (-not (Test-Path -LiteralPath $target) -or (Get-Sha $target) -ne $backupSha) {
+      Copy-Item -LiteralPath $backup -Destination $target -Force
+    }
     throw "就位失败，已回滚：$($_.Exception.Message)"
+  }
+
+  if ((Get-Sha $target) -ne $sourceSha) {
+    Copy-Item -LiteralPath $backup -Destination $target -Force
+    throw '落盘校验失败，已恢复操作前版本'
   }
   "  3/3 已就位：$target"
 }
@@ -150,6 +183,11 @@ function Restart-App {
   }
 }
 
+$mutex = [Threading.Mutex]::new($false, 'Local\dsh-inapp-chat-shell-patch')
+$locked = $false
+try {
+  $locked = $mutex.WaitOne(0, $false)
+  if (-not $locked) { throw '另一个补丁/还原操作正在运行，请稍后再试' }
 switch ($Action) {
   'status' { Show-Status; break }
 
@@ -157,7 +195,7 @@ switch ($Action) {
 
   'deploy' {
     if (-not (Test-Path -LiteralPath $Patched)) { throw "找不到补丁包：$Patched（先跑 -Action build 或 -Action install）" }
-    if (-not (Test-Patched $Patched)) { throw "补丁包不含预期改动（$marker），拒绝写入" }
+    if (-not (Test-Patched $Patched)) { throw "补丁包不含预期改动（$($markers -join ' / ')），拒绝写入" }
     if (Test-Patched $target) { "app.asar 已经是打过补丁的版本，无需重复操作。"; break }
     Stop-AppIfAsked
     Assert-AppStopped
@@ -188,9 +226,10 @@ switch ($Action) {
   }
 
   'restore' {
-    $backup = Get-ChildItem -LiteralPath $res -Filter 'app.asar.bak-*' -ErrorAction SilentlyContinue |
+    $backup = Get-ChildItem -LiteralPath $res -Filter 'app.asar.*' -ErrorAction SilentlyContinue |
+      Where-Object { ($_.Name -like 'app.asar.bak-*' -or $_.Name -like 'app.asar.official-*') -and -not (Test-Patched $_.FullName) } |
       Sort-Object LastWriteTime -Descending | Select-Object -First 1
-    if (-not $backup) { throw '没有找到备份文件，无法还原' }
+    if (-not $backup) { throw '没有找到未打补丁的官方备份，无法安全还原' }
     Stop-AppIfAsked
     Assert-AppStopped
     Swap-In $backup.FullName "备份 $($backup.Name)"
@@ -198,4 +237,8 @@ switch ($Action) {
     Show-Status
     Restart-App
   }
+}
+} finally {
+  if ($locked) { $mutex.ReleaseMutex() }
+  $mutex.Dispose()
 }

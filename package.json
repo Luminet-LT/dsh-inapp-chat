@@ -1,6 +1,6 @@
 {
   "name": "dsh-inapp-chat",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "In-app chat window for DeepSeek Harness: a sidebar entry that opens chat.deepseek.com in an application window through the standard desktop bridge (window.dsh.desktop.openWindow), with an in-app dialog fallback instead of silently jumping out to the system browser.",
   "type": "module",
   "main": "lib/index.js",
@@ -17,6 +17,7 @@
   "files": [
     "lib",
     "tools",
+    "docs",
     "cordis.patch.yml",
     "README.md",
     "README.en.md",

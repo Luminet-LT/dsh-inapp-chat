@@ -6,9 +6,19 @@
 > `chat.deepseek.com` through the standard desktop bridge, and explains itself
 > in-app when the shell can't do windows.
 
-![dsh](https://img.shields.io/badge/dsh-plugin-web-4D6BFE) ![license](https://img.shields.io/badge/license-MIT-green) ![version](https://img.shields.io/badge/version-0.1.0-4D6BFE)
+![dsh](https://img.shields.io/badge/dsh-plugin-web-4D6BFE) ![license](https://img.shields.io/badge/license-MIT-green) ![version](https://img.shields.io/badge/version-0.1.1-4D6BFE)
 
 ---
+
+## 界面预览
+
+### 侧边栏入口
+
+<img src="docs/images/sidebar-entry.png" alt="侧边栏网页对话入口" width="360">
+
+### 应用内网页对话
+
+<img src="docs/images/in-app-chat-window.png" alt="应用内网页对话窗口" width="720">
 
 ## 它解决什么问题
 
@@ -47,7 +57,9 @@ content-security-policy: frame-ancestors 'none'
   WebView2 宿主消息（`window.chrome.webview.postMessage`）。
 - **可解释的降级**：纯浏览器里照旧开新标签页；在桌面壳里如果没有桥接，弹应用内对话框
   （可在系统浏览器打开 / 一键复制补丁命令 / 关闭），不再"静默跳走"。
+- **桌面兼容**：Web 端优先使用原生 `settingsScope`；桌面 profile 没有该服务时自动退回 `localStorage`，不再阻塞 DSH 启动。
 - **开关**：设置 → 通用里可随时隐藏入口（`dsh-inapp-chat` 命名空间，默认开）。
+- **窗口尺寸**：桌面壳中的应用内网页对话默认 `640×820`。
 - **自带壳补丁工具**：`tools/` 里有 `asar_tool.cjs` + `dsh-shell-patch.ps1`，可以从
   **你自己安装的官方 app.asar** 现场生成补丁、备份原版、一键还原。
 
@@ -61,7 +73,7 @@ dsh plugin --profile web add dsh-inapp-chat
 dsh plugin --profile web add link:<本目录绝对路径>
 
 # tgz
-npm pack && dsh plugin --profile web add ./dsh-inapp-chat-0.1.0.tgz
+npm pack && dsh plugin --profile web add ./dsh-inapp-chat-0.1.1.tgz
 ```
 
 装完重启 harness（市场面板 Restart，或重启应用）。侧边栏「新对话」下方即出现「网页对话」。
@@ -92,13 +104,13 @@ powershell -ExecutionPolicy Bypass -File tools\dsh-shell-patch.ps1 -Action statu
 powershell -ExecutionPolicy Bypass -File tools\dsh-shell-patch.ps1 -Action restore -Restart   # 还原
 ```
 
-补丁改的是壳自己的两个文件（**不重新分发任何官方文件**，补丁包在你本机现场生成）：
+补丁改的是壳自己的两个文件（**不重新分发任何官方文件**，补丁包在你本机现场生成）。工具同时支持 0.1.x 与 0.2.x 布局，备份和替换都带 SHA 校验：
 
-- `main.js`：新增 `openChatWindow()`（父窗口为宿主窗口、`modal:false` 的对话框形态子窗口），
-  并把 `chat.deepseek.com` / `account.deepseek.com` 的外链改走应用内开窗，其余外链行为不变；
-  新增 IPC `dsh:desktop:openWindow`。
-- `main-preload.js`：`contextBridge` 暴露 `window.dsh.desktop.openWindow`（try/catch 包裹，
-  失败不影响原功能）。
+- 0.1.x：修改 `main.js` / `main-preload.js`。
+- 0.2.x：修改 `lib/main.js` / `lib/preload-app.cjs`，保留已有的 `dshDesktop` 等桥接。
+- 两种布局都会新增应用内开窗入口和 IPC `dsh:desktop:openWindow`，默认窗口为
+  `640×820`；只接受 `https` 的 DeepSeek 域名，并由 preload 通过 `contextBridge`
+  暴露 `window.dsh.desktop.openWindow`。
 
 注意：**应用自动更新会把 `app.asar` 换回官方版本**，补丁随之失效，更新后重跑一次 `install` 即可。
 
@@ -114,6 +126,7 @@ powershell -ExecutionPolicy Bypass -File tools\dsh-shell-patch.ps1 -Action resto
 
 ## 兼容性与限制
 
+- **桌面 profile 兼容**：0.2.x 桌面 profile 未提供 `settingsScope` 服务时，插件会自动使用浏览器本地设置，无需修改 DSH 本体。
 - **必须顶层窗口**：受站点 CSP 限制，网页聊天内容无法以 iframe 形式出现在 harness 页面内，
   只能开窗口 —— 这不是本插件能绕过的，任何插件都绕不过。
 - **对话框跟随主窗口**：补丁开的子窗口 `parent` 为主窗口，主窗口最小化到托盘时它一起隐藏。

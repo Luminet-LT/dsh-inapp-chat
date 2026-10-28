@@ -7,9 +7,19 @@
 > the shell can't do windows it says so **in an in-app dialog** instead of
 > silently throwing you out of the app.
 
-![dsh](https://img.shields.io/badge/dsh-plugin-web-4D6BFE) ![license](https://img.shields.io/badge/license-MIT-green) ![version](https://img.shields.io/badge/version-0.1.0-4D6BFE)
+![dsh](https://img.shields.io/badge/dsh-plugin-web-4D6BFE) ![license](https://img.shields.io/badge/license-MIT-green) ![version](https://img.shields.io/badge/version-0.1.1-4D6BFE)
 
 ---
+
+## Screenshots
+
+### Sidebar entry
+
+<img src="docs/images/sidebar-entry.png" alt="Web chat entry in the sidebar" width="360">
+
+### In-app web chat
+
+<img src="docs/images/in-app-chat-window.png" alt="In-app web chat window" width="720">
 
 ## The problem
 
@@ -48,7 +58,10 @@ which forbids **any** page from framing it. Only a **top-level navigation**
   legacy WebView2 host messaging (`window.chrome.webview.postMessage`).
 - Honest fallback: a plain browser still gets a new tab; a desktop shell without
   the bridge gets an in-app dialog (open in browser / copy patch command / close).
+- Desktop compatibility: uses native `settingsScope` when available and falls
+  back to `localStorage` when a desktop profile omits it.
 - Settings toggle to hide the entry (`dsh-inapp-chat` namespace, default on).
+- The in-app web chat defaults to `640×820` on the desktop shell.
 - Bundled shell-patch tools: builds the patch from **your own installed
   `app.asar`**, backs the original up, and restores it on demand.
 
@@ -57,7 +70,7 @@ which forbids **any** page from framing it. Only a **top-level navigation**
 ```bash
 dsh plugin --profile web add dsh-inapp-chat          # npm
 dsh plugin --profile web add link:<path-to-this-repo> # local checkout
-npm pack && dsh plugin --profile web add ./dsh-inapp-chat-0.1.0.tgz
+npm pack && dsh plugin --profile web add ./dsh-inapp-chat-0.1.1.tgz
 ```
 
 Restart the harness afterwards; the entry appears under **New session**.
@@ -77,7 +90,8 @@ powershell -ExecutionPolicy Bypass -File tools\dsh-shell-patch.ps1 -Action statu
 powershell -ExecutionPolicy Bypass -File tools\dsh-shell-patch.ps1 -Action restore -Restart
 ```
 
-The patch touches only the shell's own `main.js` / `main-preload.js`, and the
+The patch touches only the shell's own `main.js` / `main-preload.js` (0.1.x) or
+`lib/main.js` / `lib/preload-app.cjs` (0.2.x), and the
 patch archive is generated locally from your installation — nothing official is
 redistributed. App auto-updates restore the official `app.asar`; re-run
 `install` after an update.
@@ -94,6 +108,8 @@ click
 
 ## Limits
 
+- A 0.2.x desktop profile without `settingsScope` automatically uses browser-local
+  settings, so the missing service does not block DSH startup.
 - The chat cannot be an iframe inside the harness page — the site's CSP forbids
   it. Any plugin hits this wall; a window is the only way.
 - The patched child window is parented to the main window, so it hides together
