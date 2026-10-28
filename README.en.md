@@ -1,13 +1,18 @@
+<div align="center">
+
 # dsh-inapp-chat
 
-> **Click "Web chat" and the chat opens in an in-app window — not in your system browser.**
->
-> A DeepSeek Harness web plugin: a sidebar entry that opens `chat.deepseek.com`
-> through the standard desktop bridge (`window.dsh.desktop.openWindow`), and when
-> the shell can't do windows it says so **in an in-app dialog** instead of
-> silently throwing you out of the app.
+**Open DeepSeek web chat without leaving DeepSeek Harness.**
 
-![dsh](https://img.shields.io/badge/dsh-plugin-web-4D6BFE) ![license](https://img.shields.io/badge/license-MIT-green) ![version](https://img.shields.io/badge/version-0.1.1-4D6BFE)
+Research, debug, and ask quick questions while you work, without switching to a browser.
+
+[![dsh plugin](https://img.shields.io/badge/dsh-plugin-4D6BFE)](https://github.com/Luminet-LT/dsh-inapp-chat)
+[![version](https://img.shields.io/badge/version-0.1.1-4D6BFE)](https://github.com/Luminet-LT/dsh-inapp-chat)
+[![license](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
+
+[Features](#features) · [Install](#install) · [Usage](#usage) · [FAQ](#faq)
+
+</div>
 
 ---
 
@@ -21,152 +26,105 @@
 
 <img src="docs/images/in-app-chat-window.png" alt="In-app web chat window" width="720">
 
-## The problem
+## Why use it
 
-The official Electron desktop shell (`DeepSeek Harness.exe`) hands every external
-link to the OS browser:
+While working on a project, you often need to ask AI something outside the immediate task:
 
-```js
-mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-  if (/^https?:\/\//i.test(url)) shell.openExternal(url);   // ← leaves the app
-  return { action: 'deny' };
-});
-```
+- look up an API, configuration option, or tool usage;
+- understand an error message;
+- compare implementation options;
+- ask a quick side question.
 
-So the sidebar chat entry jumps out of the app. And you cannot simply embed the
-page instead: `chat.deepseek.com` answers with
+Switching to a browser interrupts your workflow. Sending every side conversation into the current project session also consumes more context and tokens.
 
-```
-content-security-policy: frame-ancestors 'none'
-```
+**dsh-inapp-chat** adds a **Web chat** entry to the DeepSeek Harness sidebar. It opens DeepSeek web chat in an in-app window, so you can research and ask questions while staying in your project.
 
-which forbids **any** page from framing it. Only a **top-level navigation**
-(a real window) can display it.
+### A better fit for everyday work
 
-## What this plugin does
+- keep research, debugging questions, and plan checks in a separate window;
+- avoid switching apps and losing focus;
+- use a separate web conversation and login space that does not inherit project files or chat history;
+- copy only the useful result back into the project session, reducing unrelated context and token use.
 
-1. **Bridge present** (`window.dsh.desktop.openWindow`) → opens a dialog-shaped
-   child window inside the app and loads the chat there.
-2. **No bridge** → an in-app dialog explains the situation and shows the
-   one-off shell-patch command. The patch tooling ships in `tools/`.
-
-### When to use it
-
-While working on a project in DeepSeek Harness, you often need to ask AI something
-outside the immediate task: look up an API or configuration, explain an error,
-compare implementation options, or get a quick answer to a side question.
-
-Switching to a browser interrupts your workflow. Sending every search result,
-reference, and side conversation into the current Harness session also consumes
-more context and tokens. With this plugin, you can keep DeepSeek web chat in an
-in-app window and:
-
-- look things up while continuing to code;
-- keep temporary research, debugging questions, and plan checks in the web window;
-- copy only the useful conclusion back into the project session;
-- use a separate web conversation and login partition that does not automatically
-  inherit the current project files or chat history, making context and token use
-  easier to control.
-
-In short, it is a convenient "ask AI on the side" entry point: **research, debug,
-and validate in the window, then bring only the useful result back to the project.**
+In short: **ask side questions in the window, then bring only the useful result back to the project.**
 
 ## Features
 
-- Sidebar entry directly below **New session**, matching the harness controls in
-  both the expanded and the rail (36px icon) form.
-- Two window paths: the standard `window.dsh.desktop.openWindow` bridge, plus
-  legacy WebView2 host messaging (`window.chrome.webview.postMessage`).
-- Honest fallback: a plain browser still gets a new tab; a desktop shell without
-  the bridge gets an in-app dialog (open in browser / copy patch command / close).
-- Desktop compatibility: uses native `settingsScope` when available and falls
-  back to `localStorage` when a desktop profile omits it.
-- Settings toggle to hide the entry (`dsh-inapp-chat` namespace, default on).
-- The in-app web chat defaults to `640×820` on the desktop shell.
-- Bundled shell-patch tools: builds the patch from **your own installed
-  `app.asar`**, backs the original up, and restores it on demand.
+- **In-app access**: open DeepSeek web chat from the Harness sidebar.
+- **Built for multitasking**: look things up while working on a project.
+- **Cleaner context**: web chat runs independently from the current project conversation.
+- **Token-friendly**: keep short questions out of the main session and bring back only the answer.
+- **Hideable entry**: turn off the sidebar entry under Settings → General.
+- **Independent login**: sign in once in the chat window and keep using it.
 
 ## Install
 
+Add the plugin from DeepSeek Harness:
+
 ```bash
-dsh plugin --profile web add dsh-inapp-chat          # npm
-dsh plugin --profile web add link:<path-to-this-repo> # local checkout
-npm pack && dsh plugin --profile web add ./dsh-inapp-chat-0.1.1.tgz
+dsh plugin --profile desktop add git+https://github.com/Luminet-LT/dsh-inapp-chat.git
 ```
 
-Restart the harness afterwards; the entry appears under **New session**.
+Or install from a local checkout:
 
-## Patch the desktop shell (only if it lacks `window.dsh.desktop`)
-
-```powershell
-cd tools
-.\应用补丁并重启.cmd          # closes the app, builds + applies the patch, restarts it
+```bash
+dsh plugin --profile desktop add link:<path-to-this-repo>
 ```
 
-or manually:
+Restart DeepSeek Harness after installation.
+
+## Usage
+
+1. Open DeepSeek Harness.
+2. Click **Web chat** in the left sidebar.
+3. Sign in to DeepSeek the first time the window opens.
+4. Research, ask questions, and close the window when you are done.
+
+To hide the entry, open **Settings → General** and turn off **Web chat entry**.
+
+## Still opening in the browser?
+
+Some desktop builds need the in-app window enabled first. Use the bundled tool:
+
+```text
+tools\应用补丁并重启.cmd
+```
+
+The tool backs up the current version and restores it if something fails. To undo:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File tools\dsh-shell-patch.ps1 -Action install -Restart
-powershell -ExecutionPolicy Bypass -File tools\dsh-shell-patch.ps1 -Action status
 powershell -ExecutionPolicy Bypass -File tools\dsh-shell-patch.ps1 -Action restore -Restart
 ```
 
-The patch touches only the shell's own `main.js` / `main-preload.js` (0.1.x) or
-`lib/main.js` / `lib/preload-app.cjs` (0.2.x), and the
-patch archive is generated locally from your installation — nothing official is
-redistributed. App auto-updates restore the official `app.asar`; re-run
-`install` after an update.
+After an app update, run the install tool again if links start opening in the browser.
 
-## How it decides
+## FAQ
 
-```
-click
-   ├─ window.dsh.desktop.openWindow ─► IPC ─► in-app child window           ✔
-   ├─ legacy window.chrome.webview ──► postMessage ─► same                  ✔
-   ├─ inside an Electron/WebView2 shell, no bridge ─► in-app explainer dialog
-   └─ plain browser ─────────────────► new tab (target="_blank")
-```
+### Does it read my current project?
 
-## Limits
+No. It does not automatically read project files or send web-chat content back into the project. Copy over anything you want to keep.
 
-- A 0.2.x desktop profile without `settingsScope` automatically uses browser-local
-  settings, so the missing service does not block DSH startup.
-- The chat cannot be an iframe inside the harness page — the site's CSP forbids
-  it. Any plugin hits this wall; a window is the only way.
-- The patched child window is parented to the main window, so it hides together
-  with it (tray). Use `modal:true` for a true modal, or drop `parent:` for a
-  fully independent window.
-- Installing it next to `@zerorigin-studio/dsh-deepseek-chat` shows two entries
-  and two identically named switches — pick one.
+### Why not ask in the current Harness session?
 
-## Relationship to upstream
+You can. But temporary research, error explanations, and plan checks can add a lot of unrelated context. Keeping them in a separate window leaves the main session cleaner and more token-efficient.
 
-`lib/` is forked from the MIT-licensed
-[`@zerorigin-studio/dsh-deepseek-chat`](https://github.com/zerorigin-studio/dsh-deepseek-chat)
-v0.3.4 (© caoganghui); attribution and license are preserved (see
-[LICENSE](LICENSE) and [NOTICE](NOTICE)). Changes: the in-app fallback dialog,
-its own settings namespace, the bundled shell-patch tooling, and bilingual docs.
+### Do I need to sign in separately?
 
-## Development
+Yes, sign in once in the web chat window. The login state is kept for later use.
+
+### Can I hide the sidebar entry?
+
+Yes. Go to **Settings → General** and turn off **Web chat entry**.
+
+## Development and feedback
 
 ```bash
-node test/smoke.cjs      # or: npm test
+npm test
+npm run check
 ```
 
-The smoke test needs no browser and no network: it loads `lib/client.js` through
-a fake module loader and a minimal DOM, mounts the sidebar entry the way the
-harness slots do, and then drives **all four click branches** — standard bridge,
-legacy WebView2 bridge, Electron shell without a bridge (in-app dialog expected),
-plain browser (new tab expected) — plus the settings toggle. `npm run check` adds
-the syntax checks.
-
-## Publishing
-
-```bash
-git push -u origin main                  # repo: github.com/Luminet-LT/dsh-inapp-chat
-npm publish --access public              # npm login first; add --otp=<code> when 2FA is enabled
-```
+Found a problem or have an idea? Open an [issue](https://github.com/Luminet-LT/dsh-inapp-chat/issues).
 
 ## License
 
-MIT © 2026 caoganghui (upstream portions), Luminet-LT (this fork).
+MIT © 2026 caoganghui (upstream portions), Luminet-LT (this project)
