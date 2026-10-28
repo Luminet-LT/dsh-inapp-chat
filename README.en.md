@@ -50,6 +50,27 @@ which forbids **any** page from framing it. Only a **top-level navigation**
 2. **No bridge** → an in-app dialog explains the situation and shows the
    one-off shell-patch command. The patch tooling ships in `tools/`.
 
+### When to use it
+
+While working on a project in DeepSeek Harness, you often need to ask AI something
+outside the immediate task: look up an API or configuration, explain an error,
+compare implementation options, or get a quick answer to a side question.
+
+Switching to a browser interrupts your workflow. Sending every search result,
+reference, and side conversation into the current Harness session also consumes
+more context and tokens. With this plugin, you can keep DeepSeek web chat in an
+in-app window and:
+
+- look things up while continuing to code;
+- keep temporary research, debugging questions, and plan checks in the web window;
+- copy only the useful conclusion back into the project session;
+- use a separate web conversation and login partition that does not automatically
+  inherit the current project files or chat history, making context and token use
+  easier to control.
+
+In short, it is a convenient "ask AI on the side" entry point: **research, debug,
+and validate in the window, then bring only the useful result back to the project.**
+
 ## Features
 
 - Sidebar entry directly below **New session**, matching the harness controls in
